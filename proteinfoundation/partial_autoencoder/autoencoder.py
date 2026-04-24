@@ -11,6 +11,12 @@ from loguru import logger
 from sklearn.decomposition import PCA
 from torch import Tensor
 
+from proteinfoundation.partial_autoencoder.contrastive import (
+    ContrastiveHead,
+    build_masked_batch,
+    symmetric_infonce,
+    warmup_weight,
+)
 from proteinfoundation.partial_autoencoder.decoder import DecoderTransformer
 from proteinfoundation.partial_autoencoder.decoder_ff import DecoderFFLocal
 from proteinfoundation.partial_autoencoder.encoder import EncoderTransformer
@@ -80,6 +86,32 @@ class AutoEncoder(L.LightningModule):
         self.validation_rec_samples = []
 
         self.latent_dim = self.cfg_ae.nn_ae["latent_z_dim"]
+
+        # Contrastive head is only constructed when enabled, so that disabled
+        # runs have bitwise-identical parameter lists / checkpoints vs. stock.
+        if self._contrastive_enabled():
+            ct_cfg = self.cfg_ae.loss.contrastive
+            self.ct_head = ContrastiveHead(
+                in_dim=self.latent_dim,
+                hidden=ct_cfg.proj_hidden,
+                out_dim=ct_cfg.proj_out,
+                init_temperature=ct_cfg.init_temperature,
+            )
+
+    def _contrastive_enabled(self) -> bool:
+        ct_cfg = self.cfg_ae.loss.get("contrastive", None)
+        if ct_cfg is None:
+            return False
+        return bool(ct_cfg.get("enabled", False))
+
+    def _ct_warmup_weight(self) -> float:
+        ct_cfg = self.cfg_ae.loss.contrastive
+        return warmup_weight(
+            step=self.global_step,
+            start=ct_cfg.warmup_start,
+            end=ct_cfg.warmup_end,
+            target_weight=ct_cfg.weight,
+        )
 
     def log_histogram(self, id_log: str, v: Float[torch.Tensor, "r"]):
         """
@@ -178,6 +210,16 @@ class AutoEncoder(L.LightningModule):
         #   "mean": mean of latent (diag) Gaussian dist, shape [b, n, d]
         #   "log_scale": log standard deviation of latent (diag) Gaussian dist, shape [b, n, d]
         # }
+
+        # Contrastive Pass B (structure-only view): re-encode a shallow-copied
+        # batch with configurable keys zeroed. Skipped during validation.
+        output_enc_struct = None
+        if self._contrastive_enabled() and not val_step:
+            ct_cfg = self.cfg_ae.loss.contrastive
+            batch_struct = build_masked_batch(batch, ct_cfg.mask_features)
+            batch_struct["mask"] = mask
+            output_enc_struct = self.encoder(batch_struct)
+
         log_prefix_stats = (
             "train_stats_latent" if "train" in log_prefix else "val_stats_latent"
         )
@@ -283,6 +325,44 @@ class AutoEncoder(L.LightningModule):
         # Log losses and training loss, losses with "_justlog" just for logging purposes
         self.log_losses(bs, losses, log_prefix)
         train_loss = sum([torch.mean(losses[k]) for k in losses if "_justlog" not in k])
+
+        # Symmetric per-residue InfoNCE between Pass A (full) and Pass B (structure-only).
+        # Scalar (not per-batch), so added directly to train_loss.
+        if output_enc_struct is not None:
+            ct_cfg = self.cfg_ae.loss.contrastive
+            src_a = output_enc[ct_cfg.source]
+            src_b = output_enc_struct[ct_cfg.source]
+            h_a = self.ct_head(src_a)
+            h_b = self.ct_head(src_b)
+            ct_out = symmetric_infonce(
+                h_a=h_a, h_b=h_b, mask=mask, logit_scale=self.ct_head.logit_scale
+            )
+            w_ct = self._ct_warmup_weight()
+            train_loss = train_loss + w_ct * ct_out["loss"]
+            self.log(
+                f"{log_prefix}/contrastive_loss",
+                ct_out["loss"],
+                on_step=True, on_epoch=True, prog_bar=False, logger=True,
+                batch_size=bs, sync_dist=True, add_dataloader_idx=False,
+            )
+            self.log(
+                f"{log_prefix}/contrastive_weight",
+                w_ct,
+                on_step=True, on_epoch=False, prog_bar=False, logger=True,
+                batch_size=bs, sync_dist=True, add_dataloader_idx=False,
+            )
+            self.log(
+                f"{log_prefix}/contrastive_pos_sim",
+                ct_out["pos_sim"],
+                on_step=True, on_epoch=True, prog_bar=False, logger=True,
+                batch_size=bs, sync_dist=True, add_dataloader_idx=False,
+            )
+            self.log(
+                f"{log_prefix}/contrastive_temperature",
+                ct_out["temperature"],
+                on_step=True, on_epoch=False, prog_bar=False, logger=True,
+                batch_size=bs, sync_dist=True, add_dataloader_idx=False,
+            )
 
         self.log(
             f"{log_prefix}/loss",

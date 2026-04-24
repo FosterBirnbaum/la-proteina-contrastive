@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/foste/.claude/plans/**)",
+      "Bash(mkdir -p \"C:/Users/foste/.claude/plans/\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('proteinfoundation/partial_autoencoder/contrastive.py'\\).read\\(\\)\\); ast.parse\\(open\\('proteinfoundation/partial_autoencoder/autoencoder.py'\\).read\\(\\)\\); print\\('syntax-ok'\\)\")",
+      "Bash(python -c \"import yaml; [yaml.safe_load\\(open\\(p\\)\\) for p in ['configs/training_ae.yaml','configs/training_ae_baseline.yaml','configs/training_ae_contrastive.yaml','configs/dataset/pdb/pdb_train_ucond_tiny.yaml','configs/dataset/pdb/pdb_train_ucond_small.yaml']]; print\\('yaml-ok'\\)\")",
+      "Bash(python -m pip install --quiet pyyaml)"
+    ]
+  }
+}

@@ -27,6 +27,16 @@ loss:
     weight: 1.0
   seq:
     weight: 1.0
+  contrastive:
+    enabled: False          # single toggle; disabled => stock LaProteina, bitwise unchanged
+    weight: 3e-3
+    warmup_start: 2000
+    warmup_end: 10000
+    proj_hidden: 64
+    proj_out: 128
+    init_temperature: 0.07
+    source: "mean"          # "mean" or "z_latent"
+    mask_features: ["residue_type"]
 
 
 # Precision

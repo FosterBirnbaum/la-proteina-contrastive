@@ -1,0 +1,48 @@
+# Tiny single-GPU debug subset: a few hundred chains, short lengths.
+# Use for end-to-end pipeline sanity checks only; negatives and data volume
+# are too small to draw conclusions from reconstruction numbers.
+
+datamodule:
+  _target_: "proteinfoundation.datasets.pdb_data.PDBLightningDataModule"
+  data_dir: ${oc.env:DATA_PATH}/pdb_train/
+  in_memory: True
+  format: "cif"
+  overwrite: False
+  batch_padding: True
+  sampling_mode: "cluster-random"
+  transforms:
+    - _target_: "proteinfoundation.datasets.transforms.CoordsToNanometers"
+    - _target_: "proteinfoundation.datasets.transforms.CenterStructureTransform"
+    - _target_: "proteinfoundation.datasets.transforms.GlobalRotationTransform"
+    - _target_: "proteinfoundation.datasets.transforms.ChainBreakPerResidueTransform"
+  batch_size: 4
+  num_workers: 4
+  pin_memory: True
+
+  dataselector:
+    _target_: "proteinfoundation.datasets.pdb_data.PDBDataSelector"
+    data_dir: ${oc.env:DATA_PATH}/pdb_train/
+    fraction: 0.0005
+    molecule_type: "protein"
+    experiment_types: ["diffraction", "EM"]
+    min_length: 50
+    max_length: 128
+    oligomeric_min: null
+    oligomeric_max: null
+    best_resolution: 0.0
+    worst_resolution: 3.0
+    has_ligands: []
+    remove_ligands: []
+    remove_non_standard_residues: True
+    remove_pdb_unavailable: True
+    exclude_ids: ["9b57", "9b5p", "9b5s", "9b5n", "9b5a", "9b5k", "9b5v", "9b59", "9b5w", "9b5g", "9b5i", "9b5x", "9b5d", "9b5e", "9b5t", "9b5f",
+                  "9b5o", "9b58", "9b5u", "9b5c", "9b5j", "9b5b", "9b5h", "9b5q", "9b5l", "9b56", "9b5m", "9b5l", "9b55", "9b5r", "9ij9", "9iix",
+                  "2ezq", "1kld", "1crr", "2ezs", "2ezr", "1vve", "7ll9_G"]
+
+  datasplitter:
+    _target_: "proteinfoundation.datasets.pdb_data.PDBDataSplitter"
+    data_dir: ${oc.env:DATA_PATH}/pdb_train/
+    train_val_test: [0.9, 0.08, 0.02]
+    split_type: "random"
+    split_sequence_similarity: 0.5
+    overwrite_sequence_clusters: False

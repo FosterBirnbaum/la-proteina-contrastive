@@ -1,0 +1,70 @@
+run_name_: laproteina_ae_contrastive
+
+hardware:
+  ncpus_per_task_train_: 24
+  ncpus_per_task_prepro_: 32
+  accelerator: gpu
+  ngpus_per_node_: 1
+  nnodes_: 1
+
+defaults:
+  - nn_ae: nn_130m
+  - dataset: pdb/pdb_train_ucond
+  - _self_
+
+pretrain_ckpt_path:
+
+# Loss — contrastive enabled; symmetric per-residue InfoNCE between
+# Pass A (full-info) and Pass B (residue_type zeroed, structure-only view).
+loss:
+  kl:
+    weight: 1e-4
+    anneal: false
+    patience: 10000
+  struct:
+    type: l2
+    weight: 1.0
+  seq:
+    weight: 1.0
+  contrastive:
+    enabled: True
+    weight: 3e-3
+    warmup_start: 2000
+    warmup_end: 10000
+    proj_hidden: 64
+    proj_out: 128
+    init_temperature: 0.07
+    source: "mean"
+    mask_features: ["residue_type"]
+
+force_precision_f32: False
+
+opt:
+  lr: 0.0001
+  max_epochs: 10000000
+  accumulate_grad_batches: 1
+  skip_nan_grad: False
+  grad_and_weight_analysis: True
+  dist_strategy: ddp
+  val_check_interval: 5000
+  skip_large_grad_updates:
+    use: False
+    moving_avg_size: 100
+    factor_threshold: 10
+    min_opt_steps: 1500
+
+log:
+  wandb_project: protein_ae
+  log_wandb: False
+  log_every_n_steps: 1
+  checkpoint: True
+  checkpoint_every_n_steps: 10000
+  last_ckpt_every_n_steps: 1500
+
+seed: 42
+
+ema:
+  decay: 0.999
+  validate_original_weights: False
+  every_n_steps: 1
+  cpu_offload: False
