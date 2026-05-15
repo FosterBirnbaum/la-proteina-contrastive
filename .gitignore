@@ -29,3 +29,4 @@ wandb/
 /ProteinMPNN/vanilla_model_weights/*.pt
 /misc
 /.claude
+.claude/settings.local.json
