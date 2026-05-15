@@ -1,0 +1,65 @@
+# =============================================================================
+# Self-consistency pipeline driver config
+# =============================================================================
+# Compares baseline vs contrastive la-proteina generations on:
+#   pre  = AF3-refold + Rosetta-relax of the as-generated sequence
+#   post = same, but on a Struct2Struct-redesigned sequence
+# Both stages compare AF3 predictions back to the la-proteina generated
+# structure, so high scTM / low scRMSD == self-consistent.
+
+# Path to the Struct2Struct repo (contains inference/run_full_pipeline.py).
+struct2struct_repo: "/orcd/pool/005/keating_shared/fosterb/Struct2Struct_REINFORCE"
+
+# Where staging dirs, per-stage configs, AF3/Rosetta outputs, and the final
+# CSVs all live. Re-running with the same work_dir is safe: AF3 and Rosetta
+# stages each skip if their output already exists.
+work_dir: "/orcd/pool/005/keating_shared/fosterb/laproteina_self_consistency"
+
+# Generation runs to compare. gen_root must be a directory tree containing
+# job_*.pdb files (i.e. the la-proteina inference/<config_name>/ dir).
+runs:
+  - name: baseline
+    gen_root: "/orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/inference/inference_ucond_baseline"
+  - name: contrastive
+    gen_root: "/orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/inference/inference_ucond_contrastive"
+
+# Useful while iterating: skip_pre=true reuses an existing as-generated stage,
+# skip_post=true skips the (expensive) S2S redesign + AF3 + Rosetta stage.
+skip_pre: false
+skip_post: false
+
+# -----------------------------------------------------------------------------
+# Everything below is forwarded verbatim to each per-stage Struct2Struct
+# full-pipeline YAML. The driver overrides pdb_dir, pdb_list_file, output_dir,
+# run_inference, run_af3, run_rosetta, checkpoint_dir, epoch_list, run_best.
+# -----------------------------------------------------------------------------
+pipeline_template:
+  # Struct2Struct sequence-design model used in the redesigned stage.
+  checkpoint: "/orcd/scratch/orcd/001/fosterb/pmpnn_experiments/protein_mpnn_potts_ing_msa_50_20_20_batch_20_R1/model_weights/epoch100_step1655300.pt"
+  opt_type: "iterate"
+  fixed_decoding_order: true
+  seed: 42
+  mixed_precision: true
+  num_samples: 1
+  temperature: 0.1
+  device: "cuda:0"
+
+  # AlphaFold3 (Singularity)ù these paths are the same as in
+  # Struct2Struct/inference/full_pipeline_config.yaml.
+  af3_sif:     "/orcd/pool/005/keating_shared/alphafold3/alphafold3.sif"
+  af3_dbs:     "/orcd/pool/005/keating_shared/alphafold3/alphafold3_data"
+  af3_weights: "/orcd/pool/005/keating_shared/alphafold3/alphafold3_weights"
+  af3_dir:     "/orcd/pool/005/keating_shared/alphafold3/alphafold3"
+  af3_model_seeds: [1]
+  af3_min_free_gb: 16
+  af3_check_interval_s: 10
+
+  # PyRosetta runs in its own conda env. The pipeline subprocess-calls this
+  # python interpreter so torch/etc. are not needed there.
+  rosetta_python: "/home/fosterb/.conda/envs/rosetta/bin/python"
+  rosetta_num_workers: 16
+  rosetta_overwrite: false
+
+  # Required: the helpers that compute scTM/scRMSD/plDDT from AF3 outputs and
+  # write stats.csv, which this driver reads back.
+  pottsmpnn_dave_dir: "/orcd/scratch/orcd/001/fosterb/PottsMPNN"

@@ -1,0 +1,67 @@
+Starting data preparation for dataset=pdb/pdb_train_ucond_full
+DATA_PATH=/orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/datasets
+This will download PDB structures and preprocess them into .pt files.
+
+Calling prepare_data() [this is where downloads happen...]
+[05/08/26 13:48:06] INFO     df_pdb_f1.0_minl50_maxl512_mtprotei pdb_data.py:496
+                             n_etdiffractionEM_minoNone_maxoNone                
+                             _minr0.0_maxr5.0_hl_rl_rnsrTrue_rpu                
+                             True_l_rcuFalse.csv does not exist                 
+                             yet, creating dataset now.                         
+                    INFO     Initializing PDBManager in          pdb_data.py:115
+                             /orcd/pool/005/keating_shared/foste                
+                             rb/la-proteina-contrastive/datasets                
+                             /pdb_train...                                      
+[05/08/26 13:48:14] INFO     Starting with: 1108428 chains       pdb_data.py:119
+                    INFO     Removing chains that are not in one pdb_data.py:128
+                             of the following experiment types:                 
+                             ['diffraction', 'EM']                              
+                    INFO     Removing chains longer than 512...  pdb_data.py:134
+                    INFO     959714 chains remaining             pdb_data.py:136
+                    INFO     Removing chains shorter than 50...  pdb_data.py:139
+                    INFO     862770 chains remaining             pdb_data.py:141
+                    INFO     Removing chains molecule types not  pdb_data.py:144
+                             in selection: protein...                           
+                    INFO     848852 chains remaining             pdb_data.py:148
+                    INFO     Removing chains oligomeric state    pdb_data.py:150
+                             not in selection: None - None...                   
+                    INFO     848852 chains remaining             pdb_data.py:157
+                    INFO     Removing chains with resolution not pdb_data.py:159
+                             in selection: 0.0 - 5.0...                         
+                    INFO     800400 chains remaining             pdb_data.py:170
+                    INFO     Removing chains with non-standard   pdb_data.py:187
+                             residues...                                        
+[05/08/26 13:48:16] INFO     793284 chains remaining             pdb_data.py:189
+                    INFO     Removing chains with PDB            pdb_data.py:191
+                             unavailable...                                     
+                    INFO     595565 chains remaining             pdb_data.py:193
+                    INFO     Removing excluded chains (40        pdb_data.py:210
+                             gathered)                                          
+                    INFO     595563 chains remaining             pdb_data.py:214
+                    INFO     Dataset created with 595563         pdb_data.py:498
+                             entries. Now downloading structure                 
+                             data...                                            
+[05/08/26 13:48:38] INFO     No structures to download, all      pdb_data.py:735
+                             595563 structure files already                     
+                             present                                            
+[05/08/26 13:49:04] WARNING  Error processing 7ll9 C: can't      pdb_data.py:673
+                             convert np.ndarray of type                         
+                             numpy.object_. The only supported                  
+                             types are: float64, float32,                       
+                             float16, complex64, complex128,                    
+                             int64, int32, int16, int8, uint64,                 
+                             uint32, uint16, uint8, and bool.                   
+                    WARNING  Error processing 7ll9 D: can't      pdb_data.py:673
+                             convert np.ndarray of type                         
+                             numpy.object_. The only supported                  
+                             types are: float64, float32,                       
+                             float16, complex64, complex128,                    
+                             int64, int32, int16, int8, uint64,                 
+                             uint32, uint16, uint8, and bool.                   
+                    WARNING  Error processing 7ll9 H: can't      pdb_data.py:673
+                             convert np.ndarray of type                         
+                             numpy.object_. The only supported                  
+                             types are: float64, float32,                       
+                             float16, complex64, complex128,                    
+                             int64, int32, int16, int8, uint64,                 
+                             uint32, uint16, uint8, and bool.                   

@@ -1,0 +1,83 @@
+2026-04-26 17:40:30.311 | INFO     | __main__:log_info:38 - Exp config {'nn_ae': {'name': 'transformer_ae', 'latent_z_dim': 8, 'encoder': {'nlayers': 12, 'token_dim': 768, 'nheads': 12, 'parallel_mha_transition': False, 'strict_feats': False, 'feats_seq': ['chain_break_per_res', 'x1_aatype', 'x1_a37coors_nm', 'x1_a37coors_nm_rel', 'x1_bb_angles', 'x1_sidechain_angles', 'chain_idx_seq'], 'feats_cond_seq': None, 'dim_cond': 128, 'idx_emb_dim': 128, 'feats_pair_repr': ['rel_seq_sep', 'x1_bb_pair_dists_nm', 'x1_bb_pair_orientation', 'chain_idx_pair'], 'seq_sep_dim': 127, 'pair_repr_dim': 256, 'update_pair_repr': False, 'update_pair_repr_every_n': 3, 'use_tri_mult': False, 'use_qkln': True, 'normalize_latent': False, 'latent_z_dim': 8}, 'decoder': {'nlayers': 12, 'token_dim': 768, 'abs_coors': False, 'nheads': 12, 'parallel_mha_transition': False, 'strict_feats': False, 'feats_seq': ['ca_coors_nm', 'z_latent_seq'], 'feats_cond_seq': None, 'dim_cond': 128, 'idx_emb_dim': 128, 'feats_pair_repr': ['rel_seq_sep', 'ca_coors_nm_pair_dists'], 'seq_sep_dim': 127, 'pair_repr_dim': 256, 'update_pair_repr': False, 'update_pair_repr_every_n': 3, 'use_tri_mult': False, 'use_qkln': True, 'latent_z_dim': 8}}, 'dataset': {'datamodule': {'_target_': 'proteinfoundation.datasets.pdb_data.PDBLightningDataModule', 'data_dir': '${oc.env:DATA_PATH}/pdb_train/', 'in_memory': True, 'format': 'cif', 'overwrite': False, 'batch_padding': True, 'sampling_mode': 'cluster-random', 'transforms': [{'_target_': 'proteinfoundation.datasets.transforms.CoordsToNanometers'}, {'_target_': 'proteinfoundation.datasets.transforms.CenterStructureTransform'}, {'_target_': 'proteinfoundation.datasets.transforms.GlobalRotationTransform'}, {'_target_': 'proteinfoundation.datasets.transforms.ChainBreakPerResidueTransform'}], 'batch_size': 4, 'num_workers': 4, 'pin_memory': True, 'dataselector': {'_target_': 'proteinfoundation.datasets.pdb_data.PDBDataSelector', 'data_dir': '${oc.env:DATA_PATH}/pdb_train/', 'fraction': 0.0005, 'molecule_type': 'protein', 'experiment_types': ['diffraction', 'EM'], 'min_length': 50, 'max_length': 128, 'oligomeric_min': None, 'oligomeric_max': None, 'best_resolution': 0.0, 'worst_resolution': 3.0, 'has_ligands': [], 'remove_ligands': [], 'remove_non_standard_residues': True, 'remove_pdb_unavailable': True, 'exclude_ids': ['9b57', '9b5p', '9b5s', '9b5n', '9b5a', '9b5k', '9b5v', '9b59', '9b5w', '9b5g', '9b5i', '9b5x', '9b5d', '9b5e', '9b5t', '9b5f', '9b5o', '9b58', '9b5u', '9b5c', '9b5j', '9b5b', '9b5h', '9b5q', '9b5l', '9b56', '9b5m', '9b5l', '9b55', '9b5r', '9ij9', '9iix', '2ezq', '1kld', '1crr', '2ezs', '2ezr', '1vve', '7ll9_G']}, 'datasplitter': {'_target_': 'proteinfoundation.datasets.pdb_data.PDBDataSplitter', 'data_dir': '${oc.env:DATA_PATH}/pdb_train/', 'train_val_test': [0.9, 0.08, 0.02], 'split_type': 'random', 'split_sequence_similarity': 0.5, 'overwrite_sequence_clusters': False}}}, 'run_name_': 'laproteina_ae_baseline', 'hardware': {'ncpus_per_task_train_': 24, 'ncpus_per_task_prepro_': 32, 'accelerator': 'gpu', 'ngpus_per_node_': 1, 'nnodes_': 1}, 'pretrain_ckpt_path': None, 'loss': {'kl': {'weight': 0.0001, 'anneal': False, 'patience': 10000}, 'struct': {'type': 'l2', 'weight': 1.0}, 'seq': {'weight': 1.0}, 'contrastive': {'enabled': False, 'weight': 0.003, 'warmup_start': 2000, 'warmup_end': 10000, 'proj_hidden': 64, 'proj_out': 128, 'init_temperature': 0.07, 'source': 'mean', 'mask_features': ['residue_type']}}, 'force_precision_f32': False, 'opt': {'lr': 0.0001, 'max_epochs': 10000000, 'accumulate_grad_batches': 1, 'skip_nan_grad': False, 'grad_and_weight_analysis': True, 'dist_strategy': 'ddp', 'val_check_interval': 5000, 'skip_large_grad_updates': {'use': False, 'moving_avg_size': 100, 'factor_threshold': 10, 'min_opt_steps': 1500}}, 'log': {'wandb_project': 'protein_ae', 'log_wandb': False, 'log_every_n_steps': 1, 'checkpoint': True, 'checkpoint_every_n_steps': 10000, 'last_ckpt_every_n_steps': 1500}, 'seed': 42, 'ema': {'decay': 0.999, 'validate_original_weights': False, 'every_n_steps': 1, 'cpu_offload': False}, 'single': True, 'nolog': True}
+2026-04-26 17:40:30.311 | INFO     | __main__:log_info:38 - Job name: laproteina_ae_baseline
+2026-04-26 17:40:30.312 | INFO     | __main__:log_info:38 - Root run: ./store/laproteina_ae_baseline
+2026-04-26 17:40:30.312 | INFO     | __main__:log_info:38 - Checkpoints directory: ./store/laproteina_ae_baseline/checkpoints
+2026-04-26 17:40:30.312 | INFO     | __main__:log_info:38 - Using EMA with decay 0.999
+2026-04-26 17:40:30.312 | INFO     | __main__:log_info:38 - Number of CPUs per task used (will be used for number dataloader number of workers): 24
+2026-04-26 17:40:30.312 | INFO     | __main__:log_info:38 - Local run, settign batch size to 4
+2026-04-26 17:40:30.312 | INFO     | __main__:log_info:38 - Data config {'datamodule': {'_target_': 'proteinfoundation.datasets.pdb_data.PDBLightningDataModule', 'data_dir': '${oc.env:DATA_PATH}/pdb_train/', 'in_memory': True, 'format': 'cif', 'overwrite': False, 'batch_padding': True, 'sampling_mode': 'cluster-random', 'transforms': [{'_target_': 'proteinfoundation.datasets.transforms.CoordsToNanometers'}, {'_target_': 'proteinfoundation.datasets.transforms.CenterStructureTransform'}, {'_target_': 'proteinfoundation.datasets.transforms.GlobalRotationTransform'}, {'_target_': 'proteinfoundation.datasets.transforms.ChainBreakPerResidueTransform'}], 'batch_size': 4, 'num_workers': 24, 'pin_memory': True, 'dataselector': {'_target_': 'proteinfoundation.datasets.pdb_data.PDBDataSelector', 'data_dir': '${oc.env:DATA_PATH}/pdb_train/', 'fraction': 0.0005, 'molecule_type': 'protein', 'experiment_types': ['diffraction', 'EM'], 'min_length': 50, 'max_length': 128, 'oligomeric_min': None, 'oligomeric_max': None, 'best_resolution': 0.0, 'worst_resolution': 3.0, 'has_ligands': [], 'remove_ligands': [], 'remove_non_standard_residues': True, 'remove_pdb_unavailable': True, 'exclude_ids': ['9b57', '9b5p', '9b5s', '9b5n', '9b5a', '9b5k', '9b5v', '9b59', '9b5w', '9b5g', '9b5i', '9b5x', '9b5d', '9b5e', '9b5t', '9b5f', '9b5o', '9b58', '9b5u', '9b5c', '9b5j', '9b5b', '9b5h', '9b5q', '9b5l', '9b56', '9b5m', '9b5l', '9b55', '9b5r', '9ij9', '9iix', '2ezq', '1kld', '1crr', '2ezs', '2ezr', '1vve', '7ll9_G']}, 'datasplitter': {'_target_': 'proteinfoundation.datasets.pdb_data.PDBDataSplitter', 'data_dir': '${oc.env:DATA_PATH}/pdb_train/', 'train_val_test': [0.9, 0.08, 0.02], 'split_type': 'random', 'split_sequence_similarity': 0.5, 'overwrite_sequence_clusters': False}}}
+[rank: 0] Seed set to 42
+/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/fabric/connector.py:572: `precision=16` is supported for historical reasons but its usage is discouraged. Please set your precision to 16-mixed instead!
+/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/fabric/plugins/environments/slurm.py:204: The `srun` command is available on your system but is not used. HINT: If your intention is to run Lightning on SLURM, prepend your python command with `srun` like so: srun python proteinfoundation/partial_autoencoder/train.py --con ...
+Using 16bit Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/logger_connector/logger_connector.py:76: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `lightning.pytorch` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
+Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/1
+----------------------------------------------------------------------------------------------------
+distributed_backend=nccl
+All distributed processes registered. Starting with 1 processes
+----------------------------------------------------------------------------------------------------
+
+  0%|          | 0/32 [00:00<?, ?it/s]100%|██████████| 32/32 [00:00<00:00, 2030.19it/s]
+  0%|          | 0/2 [00:00<?, ?it/s]100%|██████████| 2/2 [00:00<00:00, 2037.06it/s]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name    | Type               | Params | Mode 
+-------------------------------------------------------
+0 | encoder | EncoderTransformer | 128 M  | train
+1 | decoder | DecoderTransformer | 127 M  | train
+-------------------------------------------------------
+256 M     Trainable params
+0         Non-trainable params
+256 M     Total params
+1,024.718 Total estimated model params size (MB)
+1005      Modules in train mode
+0         Modules in eval mode
+Error executing job with overrides: ['dataset=pdb/pdb_train_ucond_tiny', '+single=true', '+nolog=true']
+Traceback (most recent call last):
+  File "/orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/proteinfoundation/partial_autoencoder/train.py", line 279, in main
+    trainer.fit(model, datamodule, ckpt_path=resume_ckpt_path)
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 539, in fit
+    call._call_and_handle_interrupt(
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/call.py", line 46, in _call_and_handle_interrupt
+    return trainer.strategy.launcher.launch(trainer_fn, *args, trainer=trainer, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/strategies/launchers/subprocess_script.py", line 105, in launch
+    return function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 575, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 982, in _run
+    results = self._run_stage()
+              ^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 1024, in _run_stage
+    self._run_sanity_check()
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 1053, in _run_sanity_check
+    val_loop.run()
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/loops/utilities.py", line 179, in _decorator
+    return loop_run(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/loops/evaluation_loop.py", line 119, in run
+    self.setup_data()
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/loops/evaluation_loop.py", line 175, in setup_data
+    dataloaders = _request_dataloader(source)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py", line 326, in _request_dataloader
+    return data_source.dataloader()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py", line 293, in dataloader
+    return call._call_lightning_datamodule_hook(self.instance.trainer, self.name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/conda/envs/laproteina_env/lib/python3.11/site-packages/lightning/pytorch/trainer/call.py", line 193, in _call_lightning_datamodule_hook
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/proteinfoundation/datasets/base_data.py", line 184, in val_dataloader
+    val_dl = self._get_dataloader(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/proteinfoundation/datasets/base_data.py", line 142, in _get_dataloader
+    raise ValueError(
+ValueError: Sampling mode is cluster-random, but clusterid_to_seqid_mapping is None
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

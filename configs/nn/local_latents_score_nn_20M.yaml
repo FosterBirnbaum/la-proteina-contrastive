@@ -1,0 +1,41 @@
+# Small flow model for pipeline testing on pdb_small (~4k chains).
+# ~20M params vs 160M for the full model.  Use this for sanity-checking
+# the full training-sampling-evaluation pipeline before scaling to full PDB.
+# Swap to local_latents_score_nn_160M once you move to the full dataset.
+name: local_latents_transformer
+
+output_parameterization:
+  bb_ca: v
+  local_latents: v
+
+nlayers: 6
+token_dim: 256
+nheads: 4
+parallel_mha_transition: False
+
+strict_feats: False
+
+feats_seq: ["xt_bb_ca", "xt_local_latents", "x_sc_bb_ca", "x_sc_local_latents", "optional_ca_coors_nm_seq_feat", "optional_res_type_seq_feat"]
+feats_cond_seq: ["time_emb_bb_ca", "time_emb_local_latents"]
+
+dim_cond: 128
+idx_emb_dim: 128
+t_emb_dim: 128
+
+feats_pair_repr: ["rel_seq_sep", "xt_bb_ca_pair_dists", "x_sc_bb_ca_pair_dists", "optional_ca_pair_dist"]
+feats_pair_cond: ["time_emb_bb_ca", "time_emb_local_latents"]
+
+xt_pair_dist_dim: 30
+xt_pair_dist_min: 0.1
+xt_pair_dist_max: 3
+x_sc_pair_dist_dim: 30
+x_sc_pair_dist_min: 0.1
+x_sc_pair_dist_max: 3
+seq_sep_dim: 127
+pair_repr_dim: 128
+
+update_pair_repr: False
+update_pair_repr_every_n: 3
+use_tri_mult: False
+
+use_qkln: True

@@ -1,36 +1,39 @@
-# Tiny single-GPU debug subset: a few hundred chains, short lengths.
-# Use for end-to-end pipeline sanity checks only; negatives and data volume
-# are too small to draw conclusions from reconstruction numbers.
+# Full PDB dataset for production VAE and flow model training.
+# All PDB diffraction + EM chains, length 50-512, resolution ≤5Å,
+# sequence-similarity split at 50%.
+#
+# Run prepare_data.sh with DATASET=pdb/pdb_train_ucond_full on a login
+# node BEFORE submitting any training jobs — download takes several hours.
 
 datamodule:
   _target_: "proteinfoundation.datasets.pdb_data.PDBLightningDataModule"
   data_dir: ${oc.env:DATA_PATH}/pdb_train/
-  in_memory: True
+  in_memory: False
   format: "cif"
   overwrite: False
   batch_padding: True
-  sampling_mode: "random"
+  sampling_mode: "cluster-random"
   transforms:
     - _target_: "proteinfoundation.datasets.transforms.CoordsToNanometers"
     - _target_: "proteinfoundation.datasets.transforms.CenterStructureTransform"
     - _target_: "proteinfoundation.datasets.transforms.GlobalRotationTransform"
     - _target_: "proteinfoundation.datasets.transforms.ChainBreakPerResidueTransform"
-  batch_size: 4
-  num_workers: 4
+  batch_size: 8
+  num_workers: 24
   pin_memory: True
 
   dataselector:
     _target_: "proteinfoundation.datasets.pdb_data.PDBDataSelector"
     data_dir: ${oc.env:DATA_PATH}/pdb_train/
-    fraction: 0.0005
+    fraction: 1.0
     molecule_type: "protein"
     experiment_types: ["diffraction", "EM"]
     min_length: 50
-    max_length: 128
+    max_length: 512
     oligomeric_min: null
     oligomeric_max: null
     best_resolution: 0.0
-    worst_resolution: 3.0
+    worst_resolution: 5.0
     has_ligands: []
     remove_ligands: []
     remove_non_standard_residues: True
@@ -42,7 +45,7 @@ datamodule:
   datasplitter:
     _target_: "proteinfoundation.datasets.pdb_data.PDBDataSplitter"
     data_dir: ${oc.env:DATA_PATH}/pdb_train/
-    train_val_test: [0.9, 0.08, 0.02]
-    split_type: "random"
+    train_val_test: [0.95, 0.04, 0.01]
+    split_type: "sequence_similarity"
     split_sequence_similarity: 0.5
     overwrite_sequence_clusters: False

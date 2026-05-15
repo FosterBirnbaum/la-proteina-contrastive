@@ -16,7 +16,7 @@ from proteinfoundation.utils.coors_utils import ang_to_nm, sample_uniform_rotati
 class CopyCoordinatesTransform(T.BaseTransform):
     """Copies coords to coords_unmodified. Useful if other transforms like noising or rotations/translations are applied later on."""
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         graph.coords_unmodified = graph.coords.clone()
 
 
@@ -29,7 +29,7 @@ class ChainBreakCountingTransform(T.BaseTransform):
     ):
         self.chain_break_cutoff = chain_break_cutoff
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         ca_coords = graph.coords[:, 1, :]
         ca_dists = torch.norm(ca_coords[1:] - ca_coords[:-1], dim=1)
         graph.chain_breaks = (ca_dists > self.chain_break_cutoff).sum().item()
@@ -45,7 +45,7 @@ class ChainBreakPerResidueTransform(T.BaseTransform):
     ):
         self.chain_break_cutoff = chain_break_cutoff
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         ca_coords = graph.coords[:, 1, :]
         ca_dists = torch.norm(ca_coords[1:] - ca_coords[:-1], dim=1)
         chain_breaks_per_residue = ca_dists > self.chain_break_cutoff
@@ -65,7 +65,7 @@ class PaddingTransform(T.BaseTransform):
         self.max_size = max_size
         self.fill_value = fill_value
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         for key, value in graph:
             if isinstance(value, torch.Tensor):
                 if value.dim() >= 1:  # Only pad tensors with 2 or more dimensions
@@ -99,7 +99,7 @@ class GlobalRotationTransform(T.BaseTransform):
     def __init__(self, rotation_strategy: Literal["uniform"] = "uniform"):
         self.rotation_strategy = rotation_strategy
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         if self.rotation_strategy == "uniform":
             rot = sample_uniform_rotation(
                 dtype=graph.coords_nm.dtype, device=graph.coords_nm.device
@@ -153,7 +153,7 @@ class StructureNoiseTransform(T.BaseTransform):
         self.uniform_min = uniform_min
         self.uniform_max = uniform_max
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         """Adds noise to the coordinates of a protein structure.
 
         Args:
@@ -195,7 +195,7 @@ class StructureNoiseTransform(T.BaseTransform):
 class CenterStructureTransform(T.BaseTransform):
     """Centers the structure based on CA coordinates."""
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         ca_coords = graph.coords_nm[:, 1, :]  # [n, 3]
         mask = torch.ones(ca_coords.shape[0], dtype=torch.bool, device=ca_coords.device)
         com = mean_w_mask(ca_coords, mask, keepdim=True)  # [1, 3]
@@ -220,7 +220,7 @@ class GlobalTranslationTransform(T.BaseTransform):
         self.normal_mean = normal_mean
         self.normal_std = normal_std
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
 
         if self.translation_strategy == "uniform":
             translation = torch.empty(
@@ -254,7 +254,7 @@ class GlobalTranslationTransform(T.BaseTransform):
 class CoordsToNanometers(T.BaseTransform):
     """Gets cordinates in nanometers."""
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         graph.coords_nm = ang_to_nm(graph.coords)
         return graph
 
@@ -262,7 +262,7 @@ class CoordsToNanometers(T.BaseTransform):
 class OpenFoldFrameTransform(T.BaseTransform):
     """OpenFold frame transform."""
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         aatype = torch.zeros_like(graph.residue_type).long()
         coords = graph.coords.double()
         atom_mask = graph.coord_mask.double()
@@ -311,7 +311,7 @@ class CenteringTransform(T.BaseTransform):
         self.data_mode = data_mode
         self.variance_perturbation = variance_perturbation
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         """Centers the graph based on the center mode and data mode.
         Args:
             graph (Data): The graph to center
@@ -572,7 +572,7 @@ class MotifMaskTransform(T.BaseTransform):
         else:
             raise ValueError(f"Unknown atom selection mode: {self.atom_selection_mode}")
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         if random.random() > self.motif_prob:
             motif_mask = torch.zeros_like(graph.coord_mask)
             graph.motif_mask = motif_mask.bool()
@@ -649,7 +649,7 @@ class ExtractMotifCoordinatesTransform(T.BaseTransform):
     Adds x_motif, seq_motif_mask, and seq_motif attributes.
     """
 
-    def __call__(self, graph: Data) -> Data:
+    def forward(self, graph: Data) -> Data:
         if not hasattr(graph, "motif_mask") or graph.motif_mask is None:
             raise ValueError(
                 "motif_mask not found in graph. Apply MotifMaskTransform first."

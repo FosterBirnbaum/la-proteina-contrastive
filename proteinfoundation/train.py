@@ -272,11 +272,13 @@ def store_n_log_configs(cfg_exp, cfg_data, run_name, ckpt_path_store, wandb_logg
 def main(cfg_exp) -> None:
     load_dotenv()
 
-    is_cluster_run = False
     nolog = cfg_exp.get(
         "nolog", False
     )  # To use do `python proteinfoundation/train.py +nolog=true`
     single = cfg_exp.get("single", False)
+    # Pass +cluster=true on SLURM to skip the local-run batch-size override (→2)
+    # and use bf16-mixed precision instead of fp16.
+    is_cluster_run = bool(cfg_exp.get("cluster", False))
     show_prog_bar = True
     if single:
         # Rewrite number of GPUs and nodes for local runs or if single flag is used
