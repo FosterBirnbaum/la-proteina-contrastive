@@ -27,3 +27,5 @@ wandb/
 /inference
 /ProteinMPNN/ca_model_weights/*.pt
 /ProteinMPNN/vanilla_model_weights/*.pt
+/misc
+/.claude
