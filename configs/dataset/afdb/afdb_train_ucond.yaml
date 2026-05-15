@@ -1,0 +1,36 @@
+datamodule:
+  _target_: "proteinfoundation.datasets.afdb_data.AFDBLightningDataModule"
+  data_dir: ${oc.env:DATA_PATH}/afdb_344k/   # raw PDBs under data_dir/raw, processed .pt under data_dir/processed
+  in_memory: False
+  format: "pdb"                              # AFDB files are .pdb (per-UniProt)
+  overwrite: False
+  batch_padding: True
+  sampling_mode: "random"                    # no MMseqs2 clustering; AFDB-512 is already Foldseek-clustered at source
+  transforms:
+    - _target_: "proteinfoundation.datasets.transforms.CoordsToNanometers"
+    - _target_: "proteinfoundation.datasets.transforms.CenterStructureTransform"
+    - _target_: "proteinfoundation.datasets.transforms.GlobalRotationTransform"
+    - _target_: "proteinfoundation.datasets.transforms.ChainBreakPerResidueTransform"
+  batch_size: 4
+  num_workers: 16
+  pin_memory: True
+
+  dataselector:
+    _target_: "proteinfoundation.datasets.afdb_data.AFDBDataSelector"
+    data_dir: ${oc.env:DATA_PATH}/afdb_344k/
+    # Pick the small, curated subset (Foldseek-clustered, lengths 32-512, pLDDT>=80; ~344k samples).
+    # Switch to AFDB_IDs-896.txt only if you intend to train the long-protein LD3 model on the 46.9M subset.
+    ids_file: ${oc.env:DATA_PATH}/laproteina_afdb_ids/AFDB_IDs-512.txt
+    fraction: 1.0
+    version: 4
+
+  datasplitter:
+    _target_: "proteinfoundation.datasets.afdb_data.AFDBDataSplitter"
+    data_dir: ${oc.env:DATA_PATH}/afdb_344k/
+    # Model card states 99.9% train / 0.1% val, no test split. At 344,508 samples that is ~344 val
+    # examples -- enough to monitor val loss. The authors did not release their exact split, so this
+    # is a fresh random partition seeded by split_dataframe (seed=42).
+    train_val_test: [0.999, 0.001, 0.0]
+    split_type: "random"
+    split_sequence_similarity: null
+    overwrite_sequence_clusters: False

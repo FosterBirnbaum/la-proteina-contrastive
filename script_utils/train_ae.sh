@@ -1,18 +1,20 @@
 #!/bin/bash
-#SBATCH --job-name=contrastive_small
+#SBATCH --job-name=contrastive_full
 #SBATCH --mem=150G
-#SBATCH --mincpu=12
+#SBATCH --mincpu=24
 #SBATCH --gres=gpu:h100:1
-#SBATCH --time=96:00:00
-#SBATCH -p pi_keating
+#SBATCH --time=48:00:00
+#SBATCH -p mit_preemptable
+#SBATCH -x node1927
+#SBATCH -x node1709
 #SBATCH -o /orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/experiments/%x/train-output.out
 #SBATCH -e /orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive/experiments/%x/train-error.out
 
 # IMPORTANT: keep EXPERIMENT_NAME in sync with --job-name above; SLURM expands
 # %x to --job-name at job-launch time so shell variables cannot be used there.
-EXPERIMENT_NAME=contrastive_small
+EXPERIMENT_NAME=contrastive_full
 CONFIG_NAME=training_ae_contrastive
-DATASET=pdb/pdb_train_ucond_small
+DATASET=pdb/pdb_train_ucond_full
 
 PROJECT_DIR=/orcd/pool/005/keating_shared/fosterb/la-proteina-contrastive
 OUTPUT_DIR=${PROJECT_DIR}/experiments/${EXPERIMENT_NAME}
@@ -47,12 +49,10 @@ touch "${DATA_PATH}/pdb_train/cc-to-pdb.tdd"
 cd "${PROJECT_DIR}"
 
 # Training
-# +cluster=true: use the config's batch_size (not overridden to 4) and bf16-mixed.
-# +single=true:  single-GPU mode (ngpus_per_node_ = 1).
-# +nolog=true:   skip W&B logging.
 TMPDIR=/dev/shm python proteinfoundation/partial_autoencoder/train.py \
     --config-name="${CONFIG_NAME}" \
     dataset="${DATASET}" \
-    +cluster=true \
     +single=true \
-    +nolog=true
+    +nolog=true \
+    dataset.datamodule.max_tokens_per_batch=1500 \
+    loss.contrastive.minibatch_size=512
